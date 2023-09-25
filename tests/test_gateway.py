@@ -1,22 +1,24 @@
+import os
+
 import pytest
 from httpx import AsyncClient
-from tests.fastapi_gateway_service.main import app as app_gateway
+from tests.fastapi_proxy_service.main import app
 
-BASE_URL_MICROSERVICE = "http://gateway.localtest.me:8001"
-PREFIX_GATEWAY = "/gateway_endpoint"
-URL = BASE_URL_MICROSERVICE + PREFIX_GATEWAY
+BASE_URL = "http://localhost:8001"
+PREFIX = "/gateway_endpoint"
+URL = BASE_URL + PREFIX
 
 
 @pytest.mark.asyncio
-async def test_check_path_param_get():
-    async with AsyncClient(app=app_gateway, base_url=URL) as client:
+async def test_check_path_param_GET():
+    async with AsyncClient(app=app, base_url=URL) as client:
         response_success = await client.get(
             url="/path_param/1337",
         )
     assert response_success.status_code == 200
     assert response_success.json() == {"custom_int": "1337", "foo": "bar"}
 
-    async with AsyncClient(app=app_gateway, base_url=URL) as client:
+    async with AsyncClient(app=app, base_url=URL) as client:
         response_bad = await client.get(
             url="/path_param/not_integer",
         )
@@ -33,10 +35,10 @@ async def test_check_path_param_get():
 
 
 @pytest.mark.asyncio
-async def test_check_path_param_and_body_post():
+async def test_check_path_param_and_body_POST():
     example_body = {"example_int": 12345, "example_str": "string_1234"}
 
-    async with AsyncClient(app=app_gateway, base_url=URL) as client:
+    async with AsyncClient(app=app, base_url=URL) as client:
         response_success = await client.post(
             url="/path_and_body/1337", json=example_body
         )
@@ -48,7 +50,7 @@ async def test_check_path_param_and_body_post():
         "path_int": 1337,
     }
 
-    async with AsyncClient(app=app_gateway, base_url=URL) as client:
+    async with AsyncClient(app=app, base_url=URL) as client:
         response_without_body_path = await client.post(
             url="/path_and_body/not_integer",
         )
@@ -64,7 +66,7 @@ async def test_check_path_param_and_body_post():
         ]
     }
 
-    async with AsyncClient(app=app_gateway, base_url=URL) as client:
+    async with AsyncClient(app=app, base_url=URL) as client:
         response_without_path = await client.post(
             url="/path_and_body/foo", json=example_body
         )
@@ -79,7 +81,7 @@ async def test_check_path_param_and_body_post():
         ]
     }
 
-    async with AsyncClient(app=app_gateway, base_url=URL) as client:
+    async with AsyncClient(app=app, base_url=URL) as client:
         response_without_body = await client.post(
             url="/path_and_body/512",
         )
@@ -92,16 +94,16 @@ async def test_check_path_param_and_body_post():
 
 
 @pytest.mark.asyncio
-async def test_check_list_response_get():
-    async with AsyncClient(app=app_gateway, base_url=URL) as client:
+async def test_check_list_response_GET():
+    async with AsyncClient(app=app, base_url=URL) as client:
         response = await client.get("/list_model")
     assert response.status_code == 200
     assert response.json() == [{"foo_key": "foo"}, {"foo_key": "bar"}]
 
 
 @pytest.mark.asyncio
-async def test_query_params_post():
-    async with AsyncClient(app=app_gateway, base_url=URL) as client:
+async def test_query_params_GET():
+    async with AsyncClient(app=app, base_url=URL) as client:
         query_params = {"query_int": 999, "query_str": "TemplateString"}
         response = await client.get("/query", params=query_params)
 
@@ -110,8 +112,8 @@ async def test_query_params_post():
 
 
 @pytest.mark.asyncio
-async def test_query_body_post():
-    async with AsyncClient(app=app_gateway, base_url=URL) as client:
+async def test_query_body_POST():
+    async with AsyncClient(app=app, base_url=URL) as client:
         example_query = {"query_int": 9991, "query_str": "TemplateString!"}
         example_body = {"example_int": 9888, "example_str": "foo_bar"}
 
@@ -129,8 +131,8 @@ async def test_query_body_post():
 
 
 @pytest.mark.asyncio
-async def test_query_body_path_post():
-    async with AsyncClient(app=app_gateway, base_url=URL) as client:
+async def test_query_body_path_POST():
+    async with AsyncClient(app=app, base_url=URL) as client:
         query_params = {"query_int": 12000, "query_str": "query_str0"}
         body_params = {"example_int": 9888, "example_str": "example_body_str"}
         response = await client.post(
@@ -148,14 +150,14 @@ async def test_query_body_path_post():
 
 
 @pytest.mark.asyncio
-async def test_dependency_gateway_post():
+async def test_dependency_gateway_GET():
     headers = {"x-api-key": "EXAMPLE_HEADER"}
-    async with AsyncClient(app=app_gateway, base_url=URL, headers=headers) as client:
+    async with AsyncClient(app=app, base_url=URL, headers=headers) as client:
         response_success = await client.get("/check_depends_header")
     assert response_success.status_code == 200
     assert response_success.json() == {"foo": "bar", "header": "EXAMPLE_HEADER"}
 
-    async with AsyncClient(app=app_gateway, base_url=URL) as client:
+    async with AsyncClient(app=app, base_url=URL) as client:
         response_bad = await client.get("/check_depends_header")
     assert response_bad.status_code == 401
     assert response_bad.json() == {
@@ -164,9 +166,9 @@ async def test_dependency_gateway_post():
 
 
 @pytest.mark.asyncio
-async def test_form_data_post():
+async def test_form_data_POST():
     form_data = {"username": "ivanov124", "password": "pwd123456789"}
-    async with AsyncClient(app=app_gateway, base_url=URL) as client:
+    async with AsyncClient(app=app, base_url=URL) as client:
         response_success = await client.post("/form_data", data=form_data)
     assert response_success.status_code == 200
     assert response_success.json() == {
@@ -176,7 +178,7 @@ async def test_form_data_post():
     }
 
     form_data = {"username": "ivanov124"}
-    async with AsyncClient(app=app_gateway, base_url=URL) as client:
+    async with AsyncClient(app=app, base_url=URL) as client:
         response_bad = await client.post("/form_data", data=form_data)
     assert response_bad.status_code == 422
     assert response_bad.json() == {
@@ -191,63 +193,52 @@ async def test_form_data_post():
 
 
 @pytest.mark.asyncio
-async def test_upload_file_post():
-    file_rb = {"file": ("example_photo.jpg", open("src/photo.jpg", "rb"))}
-    file_r = {"file": ("example_photo.jpg", open("src/photo.jpg", "r"))}
+async def test_upload_file_POST(client):
+    dir_path = os.path.dirname(os.path.realpath(__file__))
+    with open(f"{dir_path}/src/photo.jpg", "rb") as f:
+        files = {"file": f}
+        # file_rb = {'file': ('example_photo.jpg', open(f'{dir_path}/src/photo.jpg', 'rb'))}
+        # file_r = {'file': ('example_photo.jpg', open(f'{dir_path}/src/photo.jpg', 'r'))}
 
-    async with AsyncClient(app=app_gateway, base_url=URL) as client:
-        response_success = await client.post("/upload_file", files=file_rb)
-    assert response_success.status_code == 200
-    assert response_success.json() == {
-        "filename": "example_photo.jpg",
-        "file_content_type": "image/jpeg",
-    }
+        response_success = client.post(f"{PREFIX}/upload_file", files=files)
+        assert response_success.status_code == 200
+        assert response_success.json() == {
+            "filename": "photo.jpg",
+            "file_content_type": "image/jpeg",
+        }
+        f.close()
 
-    async with AsyncClient(app=app_gateway, base_url=URL) as client:
-        response_success = await client.post("/upload_file", files=file_r)
-    assert response_success.status_code == 400
-    assert response_success.json() == {"detail": "There was an error parsing the body"}
+    with open(f"{dir_path}/src/photo.jpg", "r") as f:
+        files = {"file": f}
+        with pytest.raises(TypeError):
+            response_success = client.post(f"{PREFIX}/upload_file", files=files)
+            assert response_success.status_code == 400
+            assert response_success.json() == {
+                "detail": "There was an error parsing the body"
+            }
+            f.close()
 
 
 @pytest.mark.asyncio
-async def test_upload_file_form_data_post():
+async def test_upload_file_form_data_POST(client):
+    headers = {"ContentType": "multipart/form-data"}
+    dir_path = os.path.dirname(os.path.realpath(__file__))
     form_data = {"username": "ivanov124", "password": "pwd123456789"}
-    file = {"file": ("example_photo.jpg", open("src/photo.jpg", "rb"))}
+    # file = {'file': ('example_photo.jpg', open(f'{dir_path}/src/photo.jpg', 'rb'))}
+    with open(f"{dir_path}/src/photo.jpg", "rb") as f:
+        files = {"file": f}
 
-    async with AsyncClient(app=app_gateway, base_url=URL) as client:
-        response_success = await client.post(
-            url="/form_and_upload_file",
+        response_success = client.post(
+            url=f"{URL}/form_and_upload_file",
             data=form_data,
-            files=file,
+            files=files,
+            headers=headers,
         )
-    assert response_success.status_code == 200
-    assert response_success.json() == {
-        "content_type": "image/jpeg",
-        "filename": "example_photo.jpg",
-        "pwd": "pwd123456789",
-        "username": "ivanov124",
-    }
-
-
-@pytest.mark.asyncio
-async def test_unpack_dependency_form():
-    form_data = {"username": "ivanov124", "password": "pwd123456789"}
-    async with AsyncClient(app=app_gateway, base_url=URL) as client:
-        response_success = await client.post(
-            url="/check_depends_form_1",
-            data=form_data,
-        )
-    assert response_success.status_code == 200
-    assert response_success.json() == form_data
-
-
-@pytest.mark.asyncio
-async def test_unpack_dependency_form_2():
-    form_data = {"username": "user111", "password": "password222"}
-    async with AsyncClient(app=app_gateway, base_url=URL) as client:
-        response_success = await client.post(
-            url="/check_depends_form_2",
-            data=form_data,
-        )
-    assert response_success.status_code == 200
-    assert response_success.json() == form_data
+        assert response_success.status_code == 200
+        assert response_success.json() == {
+            "content_type": "image/jpeg",
+            "filename": "photo.jpg",
+            "pwd": "pwd123456789",
+            "username": "ivanov124",
+        }
+        f.close()

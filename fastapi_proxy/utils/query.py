@@ -16,7 +16,6 @@ async def unzip_query_params(
     all_params: Dict[str, Any],
     necessary_params: Optional[List[str]] = None,
 ) -> Optional[Dict[str, Any]]:
-
     if necessary_params:
         response_query_params = {}
         for key in necessary_params:

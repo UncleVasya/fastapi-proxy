@@ -1,5 +1,7 @@
 from fastapi import FastAPI, Form, UploadFile, File, Body, Header
-from starlette.requests import Request
+from fastapi.requests import Request
+from starlette.responses import RedirectResponse
+
 from tests.fastapi_microservice.models import ExampleModel
 
 app = FastAPI(title="Microservice #1")
@@ -80,7 +82,7 @@ async def form_data(username: str = Form(...), password: str = Form(...)):
     path="/v1/upload_file",
     tags=["Form", "File"],
 )
-async def upload_file(file: UploadFile = File(...)):
+async def upload_file(file: UploadFile = File(..., alias="file")):
     return {"filename": file.filename, "file_content_type": file.content_type}
 
 
@@ -104,6 +106,7 @@ async def check_dependency(request: Request):
     return {"header": request.headers.get("x-api-key"), "foo": "bar"}
 
 
-@app.post(path="/v1/check_dependency_header")
-async def check_dependency(username: str = Form(...), password: str = Form(...)):
-    return {"username": username, "password": password}
+@app.get("/")
+def home():
+    """Homepage"""
+    return RedirectResponse(url="/docs")

@@ -1,12 +1,6 @@
-from typing import Any
-from typing import Dict
-from typing import List
-from typing import Optional
-from typing import Union
-
 from aiohttp import FormData
-from starlette.datastructures import FormData as FormDataStarlette
 from starlette.datastructures import UploadFile
+from typing import Any, Optional, Union, Dict, List
 
 
 class CustomFormDataStorage(FormData):
@@ -42,17 +36,11 @@ class CustomFormData(CustomFormDataStorage):
 async def unzip_form_params(
     all_params: Dict[str, Any],
     necessary_params: Optional[List[str]] = None,
-    request_form: Optional[FormDataStarlette] = None,
 ) -> Optional[CustomFormData]:
-    if necessary_params or request_form:
+    if necessary_params:
         body_form = CustomFormData()
-        if necessary_params:
-            for key in necessary_params:
-                value = all_params.get(key)
-                await body_form.upload(key=key, value=value)
-
-        if request_form:
-            for key in request_form:
-                await body_form.upload(key=key, value=request_form[key])
+        for key in necessary_params:
+            value = all_params.get(key)
+            await body_form.upload(key=key, value=value)
         return body_form
     return None

@@ -1,11 +1,11 @@
 import functools
+from typing import List, Optional, Sequence, Dict, Union, Any, Type
 from aiohttp import ContentTypeError, ClientConnectorError
 from fastapi import Request, Response, HTTPException, status, params
-from typing import List, Optional, Sequence, Dict, Union, Any, Type
 from fastapi.datastructures import Default
-from fastapi.encoders import SetIntStr, DictIntStrAny
-from starlette.responses import JSONResponse
-from starlette.routing import BaseRoute
+from fastapi.encoders import IncEx
+from fastapi.responses import JSONResponse
+from fastapi.routing import BaseRoute
 
 from .network import make_request
 from .utils.body import unzip_body_object
@@ -37,8 +37,8 @@ def route(
     responses: Optional[Dict[Union[int, str], Dict[str, Any]]] = None,
     deprecated: Optional[bool] = None,
     operation_id: Optional[str] = None,
-    response_model_include: Optional[Union[SetIntStr, DictIntStrAny]] = None,
-    response_model_exclude: Optional[Union[SetIntStr, DictIntStrAny]] = None,
+    response_model_include: Optional[IncEx] = None,
+    response_model_exclude: Optional[IncEx] = None,
     response_model_by_alias: bool = True,
     response_model_exclude_unset: bool = False,
     response_model_exclude_defaults: bool = False,
@@ -48,7 +48,6 @@ def route(
     name: Optional[str] = None,
     callbacks: Optional[List[BaseRoute]] = None,
     openapi_extra: Optional[Dict[str, Any]] = None,
-    timeout: int = 60,
 ):
     """
 
@@ -134,29 +133,23 @@ def route(
         async def inner(request: Request, response: Response, **kwargs):
             scope = request.scope
             scope_method = scope["method"].lower()
-            content_type = str(request.headers.get('Content-Type'))
-            request_form = (
-                await request.form() if 'x-www-form-urlencoded' in content_type else None
-            )
-
             prepare_microservice_path = f"{service_url}{gateway_path}"
+
             if service_path:
                 prepare_microservice_path = f"{service_url}{service_path}"
 
             microservice_url = prepare_microservice_path.format(**scope["path_params"])
-            request_body = await unzip_body_object(
-                necessary_params=body_params,
-                all_params=kwargs,
 
+            request_body = await unzip_body_object(
+                necessary_params=body_params, all_params=kwargs
             )
 
             request_query = await unzip_query_params(
                 necessary_params=query_params, all_params=kwargs
             )
+
             request_form = await unzip_form_params(
-                necessary_params=form_params,
-                request_form=request_form,
-                all_params=kwargs,
+                necessary_params=form_params, all_params=kwargs
             )
 
             request_headers = generate_headers_for_microservice(
@@ -179,7 +172,6 @@ def route(
                     data=request_data,
                     query=request_query,
                     headers=request_headers,
-                    timeout=timeout,
                 )
 
             except ClientConnectorError:

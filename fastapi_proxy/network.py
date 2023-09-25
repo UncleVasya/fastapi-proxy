@@ -2,10 +2,10 @@ import aiohttp
 import async_timeout
 from typing import Optional, Union
 from aiohttp import JsonPayload
-from starlette.datastructures import Headers
-from fastapi_gateway.utils.form import CustomFormData
-from fastapi_gateway.utils.response import decode_json
-from fastapi_gateway.utils.request import create_dict_if_not
+from fastapi.datastructures import Headers
+from fastapi_proxy.utils.form import CustomFormData
+from fastapi_proxy.utils.response import decode_json
+from fastapi_proxy.utils.request import create_dict_if_not
 
 
 async def make_request(
