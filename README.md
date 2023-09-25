@@ -68,7 +68,7 @@ class FooModel(BaseModel):
 @route(
     request_method=app.post,
     service_url=SERVICE_URL,
-    proxy_path='/query_and_body_path/{path}',
+    gateway_path='/query_and_body_path/{path}',
     service_path='/v1/query_and_body_path/{path}',
     query_params=['query_int', 'query_str'],
     body_params=['test_body'],
@@ -108,7 +108,7 @@ form_params - List[File, Form]
  ```
 
 
-<img width="450" height="456" src="https://user-images.githubusercontent.com/64792903/130335866-82be1684-cd54-43d3-8e0e-4013176a352a.jpg">
+<img alt="" width="450" height="456" src="https://user-images.githubusercontent.com/64792903/130335866-82be1684-cd54-43d3-8e0e-4013176a352a.jpg">
 
 ## Build and publish
 
