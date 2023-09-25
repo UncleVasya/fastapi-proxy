@@ -22,5 +22,5 @@ jobs:
     - name: Build and publish
       run: |
         poetry version $(git describe --tags --abbrev=0)
-        poetry build
-        poetry publish --username ${{ secrets.PYPI_USERNAME }} --password ${{ secrets.PYPI_PASSWORD }}
+        python -m build
+        python -m twine upload --repository pypi dist/* --username ${{ secrets.PYPI_USERNAME }} --password ${{ secrets.PYPI_PASSWORD }}
