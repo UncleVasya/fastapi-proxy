@@ -12,7 +12,11 @@ async def unzip_body_object(
         response_body_dict = {}
         for key in necessary_params:
             value = all_params.get(key)
-            _body_dict = await serialize_response(response_content=value, exclude_unset=True)
+            try:
+                value = value.model_dump(exclude_unset=True)
+            except:
+                pass
+            _body_dict = await serialize_response(response_content=value)
             response_body_dict.update(_body_dict)
         return JsonPayload(value=response_body_dict, dumps=ujson.dumps)
     return None
