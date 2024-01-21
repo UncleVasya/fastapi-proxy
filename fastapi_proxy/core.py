@@ -194,6 +194,9 @@ def route(
                 response.headers.update(service_headers)
             response.status_code = status_code_from_service
 
+            if response.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY:
+                raise HTTPException(status_code=response.status_code, detail=resp_data)
+
             return resp_data
 
     return wrapper
