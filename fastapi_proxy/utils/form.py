@@ -29,7 +29,7 @@ class CustomFormData(CustomFormDataStorage):
                 value=bytes_file,
                 content_type=value.content_type,
             )
-        elif isinstance(value, str):
+        else:
             self.add_www_form(name=key, value=value)
 
 
